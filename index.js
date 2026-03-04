@@ -1,8 +1,10 @@
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
+const fs = require('fs');
 const app = express();
 const Path = require('path');
+const { log } = require('console');
 app.use(morgan('dev'));
 app.use(cors());
 // iske jaga hum static folder bana ke usme apne css, js, images rakh sakte hai aur usko serve kar sakte hai
@@ -17,15 +19,31 @@ app.use(express.json());
 app.use(express.urlencoded({extended : true}));
 
 app.get('/', (req,res) => {
-    res.render("index");
+    fs.readdir('./files', (err, files) => {
+     if(err) return res.send('Error reading files');
+     const fileData = files.map(file => {
+        const detail = fs.readFileSync(`./files/${file}`, 'utf-8');
+        return { 
+            title: file.replace('.txt', '').replace(/-/g, ' '),
+            detail : detail,
+            id : file.split('.txt')[0]
+         };
+     })
+     res.render("index", {files : fileData});
+    })
 })
-app.get('/profile/:username', (req,res) => {
-    res.send(`<h1>welcome ${req.params.username}</h1>`);
+app.post('/create', (req,res) => {
+   fs.writeFile(`./files/${req.body.title.split(' ').join('-')}.txt`, req.body.detail, (err) => {
+res.redirect('/');
+   })
 })
-// multiple params
-app.get('/author/:username/:age', (req,res) => {
-    res.send(`<h1>welcome ${req.params.username} of a age is ${req.params.age}</h1>`);
-})
+// app.get('/profile/:username', (req,res) => {
+//     res.send(`<h1>welcome ${req.params.username}</h1>`);
+// })
+// // multiple params
+// app.get('/author/:username/:age', (req,res) => {
+//     res.send(`<h1>welcome ${req.params.username} of a age is ${req.params.age}</h1>`);
+// })
 app.listen(5000, () => {
     console.log("server is running on port 5000");
 })
