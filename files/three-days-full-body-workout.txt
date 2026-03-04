@@ -1,0 +1,4 @@
+monday : full body
+tuesday : rest 
+wednesday : full body
+repeat
